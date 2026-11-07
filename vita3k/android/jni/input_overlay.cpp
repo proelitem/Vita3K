@@ -76,6 +76,20 @@ void attach_overlay_virtual_controller() {
     refresh_overlay_controllers();
 }
 
+bool overlay_virtual_controller_attached() {
+    return virtual_joystick != nullptr;
+}
+
+void overlay_set_button(int button, bool value) {
+    if (virtual_joystick)
+        SDL_SetJoystickVirtualButton(virtual_joystick, button, value);
+}
+
+void overlay_set_axis(int axis, int16_t value) {
+    if (virtual_joystick)
+        SDL_SetJoystickVirtualAxis(virtual_joystick, axis, value);
+}
+
 extern "C" {
 
 JNIEXPORT void JNICALL

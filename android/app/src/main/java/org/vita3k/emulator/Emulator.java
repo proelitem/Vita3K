@@ -205,6 +205,14 @@ public class Emulator extends SDLActivity
             finish();
             return;
         }
+        android.view.Surface xr = NativeXr.start(this, getIntent().getIntArrayExtra(TremuLaunchActivity.EXTRA_PAD));
+        if (xr == null) {
+            Log.e(TAG, "OpenXR did not start");
+            finish();
+            return;
+        }
+        ((EmuSurface) mSurface).useXrSurface(xr);
+        holdMulticastLock();
         savedStateRegistryController.performAttach();
         savedStateRegistryController.performRestore(savedInstanceState);
         lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_CREATE);
@@ -291,7 +299,8 @@ public class Emulator extends SDLActivity
 
     @Override
     public void onWindowFocusChanged(boolean hasFocus) {
-        super.onWindowFocusChanged(hasFocus);
+        // In the headset, the OpenXR session has the focus, not this window.
+        super.onWindowFocusChanged(true);
         if (hasFocus) {
             refreshUiState(false);
         }
@@ -447,6 +456,26 @@ public class Emulator extends SDLActivity
         if (overlay != null) {
             overlay.refreshOverlayScope(currentGameId);
         }
+    }
+
+    /** Android drops broadcasts without this lock, and the Vita's ad hoc games find each other by broadcast. */
+    private void holdMulticastLock() {
+        android.net.wifi.WifiManager wifi = (android.net.wifi.WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
+        if (wifi != null)
+            wifi.createMulticastLock("vita-adhoc").acquire();
+    }
+
+    /** Called by the OpenXR thread: the player left the game. One title per process, like Tremu's other apps. */
+    @Keep
+    public void onXrQuit() {
+        runOnUiThread(() -> {
+            String caller = getIntent().getStringExtra(TremuLaunchActivity.EXTRA_RETURN_PACKAGE);
+            Intent back = caller == null ? null : getPackageManager().getLaunchIntentForPackage(caller);
+            if (back != null)
+                startActivity(back);
+            finish();
+            System.exit(0);
+        });
     }
 
     public void requestNativeQuit() {

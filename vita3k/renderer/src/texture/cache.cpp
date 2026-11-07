@@ -15,6 +15,7 @@
 // with this program; if not, write to the Free Software Foundation, Inc.,
 // 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
+#include <mem/functions.h>
 #include <renderer/functions.h>
 
 #include <renderer/profile.h>
@@ -540,6 +541,15 @@ void TextureCache::upload_texture(const SceGxmTexture &gxm_texture, MemState &me
         }
 
         if (texture_type != SCE_GXM_TEXTURE_LINEAR && texture_type != SCE_GXM_TEXTURE_LINEAR_STRIDED && !gxm::is_pvrt_format(base_format)) {
+            // Killzone Mercenary binds a texture whose data runs past its memory block: the read below
+            // crashed the emulator. Keep what was uploaded so far instead.
+            const Address source = data.address() + total_source_so_far;
+            const uint32_t source_size = (static_cast<uint64_t>(pixels_per_stride) * memory_height * bpp) / 8;
+            if (pixels == texture_data && !is_valid_addr_range(mem, source, source + source_size)) {
+                LOG_ERROR_ONCE("Texture data at 0x{:X} ({} bytes) runs past its memory, skipped", source, source_size);
+                break;
+            }
+
             // Convert data to linear layout
             texture_pixels_lineared.resize(pixels_per_stride * memory_height * bytes_per_pixel);
 

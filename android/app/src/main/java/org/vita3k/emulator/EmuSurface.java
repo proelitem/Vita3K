@@ -11,6 +11,7 @@ import org.vita3k.emulator.overlay.InputOverlay;
 public class EmuSurface extends SDLSurface {
 
     private InputOverlay mOverlay;
+    private android.view.Surface xrSurface;
 
     public InputOverlay getmOverlay() {
         return mOverlay;
@@ -21,14 +22,40 @@ public class EmuSurface extends SDLSurface {
         mOverlay = new InputOverlay(context);
     }
 
+    /** Quest: SDL draws into the OpenXR session's Surface; the view's own one is never shown. */
+    public void useXrSurface(android.view.Surface surface) {
+        xrSurface = surface;
+        org.libsdl.app.SDLActivity.onNativeSurfaceCreated();
+        org.libsdl.app.SDLActivity.nativeSetScreenResolution(NativeXr.SCREEN_WIDTH, NativeXr.SCREEN_HEIGHT, NativeXr.SCREEN_WIDTH, NativeXr.SCREEN_HEIGHT, 1.0f, 72.0f);
+        org.libsdl.app.SDLActivity.onNativeResize();
+        mIsSurfaceReady = true;
+        setSurfaceStatus(true);
+        org.libsdl.app.SDLActivity.onNativeSurfaceChanged();
+    }
+
+    @Override
+    public android.view.Surface getNativeSurface() {
+        return xrSurface != null ? xrSurface : super.getNativeSurface();
+    }
+
+    @Override
+    public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
+        if (xrSurface == null)
+            super.surfaceChanged(holder, format, width, height);
+    }
+
     @Override
     public void surfaceCreated(SurfaceHolder holder) {
+        if (xrSurface != null)
+            return;
         setSurfaceStatus(true);
         super.surfaceCreated(holder);
     }
 
     @Override
     public void surfaceDestroyed(SurfaceHolder holder) {
+        if (xrSurface != null)
+            return;
         setSurfaceStatus(false);
         super.surfaceDestroyed(holder);
     }

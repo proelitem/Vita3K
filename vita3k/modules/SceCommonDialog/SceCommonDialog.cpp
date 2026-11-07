@@ -17,6 +17,11 @@
 
 #include <module/module.h>
 
+#ifdef __ANDROID__
+#include <sys/system_properties.h>
+#endif
+#include <cstdlib>
+
 #include <dialog/state.h>
 #include <dialog/types.h>
 #include <emuenv/app_util.h>
@@ -102,6 +107,36 @@ EXPORT(int, sceCameraImportDialogTerm) {
 EXPORT(int, sceCommonDialog_B7D4C911) {
     STUBBED("Return 2");
     return 2;
+}
+
+// An online account dialog of Killzone Mercenary, name unknown (Init, GetResult, Term, Abort around
+// B7D4C911, GetStatus). Without them the game reads a result from uninitialized stack and waits for ever.
+// The dialog finishes at once, canceled: there is no account service here.
+EXPORT(int, sceCommonDialog_33626E2C, const void *param) {
+    STUBBED("Finished at once");
+    return 0;
+}
+
+EXPORT(int, sceCommonDialog_B55CF0E3) {
+    return 0;
+}
+
+EXPORT(int, sceCommonDialog_BEBAEF25) {
+    return 0;
+}
+
+EXPORT(int, sceCommonDialog_D1858A78, uint32_t *result) {
+    // The game switches on result[1], values 0 to 3 whose meaning is not known yet.
+    int choice = 0;
+#ifdef __ANDROID__
+    char value[PROP_VALUE_MAX] = {};
+    if (__system_property_get("debug.vita3k.dialogresult", value) > 0)
+        choice = atoi(value);
+#endif
+    LOG_INFO("Account dialog answered canceled, choice {}", choice);
+    result[0] = SCE_COMMON_DIALOG_RESULT_USER_CANCELED;
+    result[1] = choice;
+    return 0;
 }
 
 EXPORT(int, sceCommonDialogGetWorkerThreadId) {

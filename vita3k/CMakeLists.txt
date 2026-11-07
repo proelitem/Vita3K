@@ -167,12 +167,27 @@ if(ANDROID)
 		android/jni/native_install.cpp
 		android/jni/native_session.cpp
 		android/jni/input_overlay.cpp
+		android/jni/native_xr.cpp
 		android/jni/ime.cpp
 		interface.cpp
 		performance.cpp
 	)
 	target_include_directories(vita3k PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 	target_link_libraries(vita3k PRIVATE SDL3::SDL3 pugixml::pugixml android)
+	# Khronos OpenXR loader for Android (the "prefab/modules" folder of its AAR), for the Quest's
+	# OpenXR session (android/jni/native_xr.cpp). Set OPENXR_DIR in the environment or with -DOPENXR_DIR=...
+	if(NOT OPENXR_DIR)
+		if(DEFINED ENV{OPENXR_DIR})
+			set(OPENXR_DIR "$ENV{OPENXR_DIR}")
+		else()
+			set(OPENXR_DIR "G:/Projets/WFVR/time-crisis-vr/.tools/openxr/prefab/modules") # Tremu's build PC
+		endif()
+	endif()
+	if(NOT EXISTS "${OPENXR_DIR}/headers/include/openxr/openxr.h")
+		message(FATAL_ERROR "OpenXR loader not found in OPENXR_DIR=${OPENXR_DIR}")
+	endif()
+	target_include_directories(vita3k PRIVATE "${OPENXR_DIR}/headers/include")
+	target_link_libraries(vita3k PRIVATE "${OPENXR_DIR}/openxr_loader/libs/android.arm64-v8a/libopenxr_loader.so" EGL GLESv3)
 
 	if(CMAKE_BUILD_TYPE STREQUAL "Release")
 		# we need to exclude all symbols except SDL

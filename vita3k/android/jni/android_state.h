@@ -61,6 +61,9 @@ std::optional<app::AppEntry> find_app_by_title_id(const std::string &title_id);
 bool remove_path_if_exists(const fs::path &path);
 void attach_overlay_virtual_controller();
 void detach_overlay_virtual_controller();
+bool overlay_virtual_controller_attached();
+void overlay_set_button(int button, bool value);
+void overlay_set_axis(int axis, int16_t value);
 
 enum AppActionMask : uint32_t {
     ACTION_DELETE_APPLICATION = 1u << 0,

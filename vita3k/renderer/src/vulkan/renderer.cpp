@@ -732,6 +732,7 @@ bool VKState::create(std::unique_ptr<renderer::State> &state, const Config &conf
             support_standard_layout &= static_cast<bool>(features.get<vk::PhysicalDeviceUniformBufferStandardLayoutFeatures>().uniformBufferStandardLayout);
         }
         support_memory_mapping &= support_standard_layout;
+        LOG_INFO("Memory mapping needs: buffer device address {}, uniform standard layout {}", support_buffer_device_address, support_standard_layout);
 
 #ifdef __APPLE__
         // we need to make a copy of the vertex buffer for moltenvk, so disable memory mapping

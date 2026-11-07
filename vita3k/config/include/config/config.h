@@ -145,7 +145,7 @@ using PhysicalKeyCode = input::PhysicalKeyCode;
     code(bool, "fullscreen_hd_res_pixel_perfect", false, fullscreen_hd_res_pixel_perfect)               \
     code(bool, "archive-log", false, archive_log)                                                       \
     code(std::string, "backend-renderer", "Vulkan", backend_renderer)                                   \
-    code(std::string, "custom-driver-name", "", custom_driver_name)                                     \
+    code(std::string, "custom-driver-name", "Tremu-Turnip", custom_driver_name)                                     \
     code(bool, "turbo-mode", false, turbo_mode)                                                         \
     code(int, "gpu-idx", 0, gpu_idx)                                                                    \
     code(bool, "high-accuracy", false, high_accuracy)                                                   \
@@ -176,7 +176,7 @@ using PhysicalKeyCode = input::PhysicalKeyCode;
     code(int, "delay-background", 4, delay_background)                                                  \
     code(int, "delay-start", 30, delay_start)                                                           \
     code(float, "background-alpha", .300f, background_alpha)                                            \
-    code(int, "log-level", 0 /*SPDLOG_LEVEL_TRACE*/, log_level)                                         \
+    code(int, "log-level", 2 /*SPDLOG_LEVEL_INFO*/, log_level)                                          \
     code(bool, "cpu-opt", true, cpu_opt)                                                                \
     code(std::string, "pref-path", std::string{}, vita_fs_path)                                         \
     code(bool, "discord-rich-presence", true, discord_rich_presence)                                    \
